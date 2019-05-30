@@ -2691,6 +2691,7 @@ GameObject:
   - component: {fileID: 1448092640}
   - component: {fileID: 1448092641}
   - component: {fileID: 1448092642}
+  - component: {fileID: 1448092643}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2811,7 +2812,7 @@ MonoBehaviour:
   doneBoardButton: {fileID: 1111424622}
   makeBoardCanvas: {fileID: 869882131}
   gapBetweenSlider: {fileID: 1522572178}
-  boardCreationPanel: {fileID: 0}
+  boardCreationPanel: {fileID: 1448092643}
   spawnSlotSize: 0.5
   useTheseDimsButton: {fileID: 303999594}
   numRowsInputField: {fileID: 678648891}
@@ -2831,6 +2832,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pieceInfo:
     pieceName: 
+--- !u!114 &1448092643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1448092636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd32a040d917d4db8802473e275fa7f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boardInfo:
+    numOfRows: 0
+    numOfCols: 0
 --- !u!1 &1454448088
 GameObject:
   m_ObjectHideFlags: 0
