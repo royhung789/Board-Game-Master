@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
 
 // class representing the information needed to play a custom game 
 [System.Serializable]
@@ -25,11 +25,10 @@ public class GameInfo
 
     // number of pieces declared so far;
     // NOTE: This should be used instead of pieces.length
-    public byte numOfPieces; 
+    public byte numOfPieces;
 
     // the rules of the game
-    // TODO
-
+    public List<RuleInfo> rules;
 
 
 
