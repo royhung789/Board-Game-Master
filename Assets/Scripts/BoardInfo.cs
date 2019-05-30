@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-
-
-
-// class representing information about the state of a board
+﻿// class representing information about the state of a board
 [System.Serializable]
 public class BoardInfo
 {
@@ -10,6 +6,10 @@ public class BoardInfo
     // board sizes in number of squares (which can have full pieces on top)
     public byte numOfRows;
     public byte numOfCols;
+
+    // relative size of gaps between large squares, 
+    //   e.g. 1 means gaps are as large as the squares
+    public float sizeOfGap;
      
 
     // array representating the shape and colouring of the board
