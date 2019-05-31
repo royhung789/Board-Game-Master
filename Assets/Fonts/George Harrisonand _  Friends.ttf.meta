@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: e51e6038d2bc5c542968ca64c19b01d3
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: George Harrison &  Friends
+  fontNames:
+  - George Harrison &  Friends
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 3373678c050c64de1b918eb051f9b9de, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
