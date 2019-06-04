@@ -23,7 +23,7 @@ public abstract class PosInfo
 
     // the byte value used to represent the lack of a cube or a plane
     //  used in array representation of where pieces are on a board 
-    public const byte noPiece = 255; 
+    public const byte noPiece = byte.MaxValue; 
 
     // at each position, there is either nothing,
     //  or something of a specific RGB colour

@@ -15,18 +15,21 @@ public class GameHandler : MonoBehaviour
     {
         // TODO
 
-        // TEMP
-        Vector3 tempstart = new Vector3(-40, 10, -40);
+        // retrievs game info, calculate where to start tiling
         GameInfo gmInf = game.info;
+        BoardInfo startBoard = gmInf.boardAtStart;
+        Vector3 start = new Vector3(-startBoard.width / 2, 10, -startBoard.height / 2);
 
         ButtonHandler bh = 
             this.gameObject.GetComponent<ButtonHandler>();
 
+        float spawnSlotSize = bh.boardSquareSize / gmInf.pieceResolution;
+
         // tiles and assigns appropriate variables to piece spawning slots
-        Utility.TileAct(tempstart, bh.pieceSpawningSlot, bh.spawnSlotSize,
+        Utility.TileAct(start, bh.pieceSpawningSlot, spawnSlotSize,
             gmInf.numOfRows, gmInf.numOfCols, gmInf.pieceResolution,
-            bh.gapBetweenSlider.value,
-            (slot, boardC, boardR, pieceC, pieceR) =>
+            gmInf.boardAtStart.sizeOfGap,
+            (slot, boardR, boardC, pieceR, pieceC) =>
             {
                 // assigns variables
                 PieceSpawningSlot spawnSlotScr =

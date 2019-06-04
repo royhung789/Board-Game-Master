@@ -10,6 +10,8 @@ public class PieceSlot : MonoBehaviour
 
 
     /***  INSTANCE VARIABLES ***/
+    // the piece cube above this spawning slot 
+    public PieceCubePlayMode pieceCube;
 
     // co-ordinates corresponding to vis.rep. indexes this object 
     //  is associated with, i.e. position inside a board's square

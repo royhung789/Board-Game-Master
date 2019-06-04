@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -10,7 +12,7 @@ public class Utility : MonoBehaviour
 {
     /*** STATIC VARIABLES ***/
     // games folder, where all files containing data about games are stored
-    private static readonly string gamesFolderPath = 
+    private static readonly string gamesFolderPath =
         Application.persistentDataPath + "/games";
 
     // all the game objects to delete after a (creation/play) session
@@ -19,13 +21,40 @@ public class Utility : MonoBehaviour
 
 
     /*** STATIC METHODS ***/
+    // clones button from template with specified text and put it in location 
+    //  activates action, with button made passed in as parameter, on click
+    public static Button CreateButton(Button template, Component location,
+                                      string text, Func<Button, UnityAction> action)
+    {
+        // creates button, set text, activates it
+        Button button = Instantiate(template);
+        button.GetComponentInChildren<Text>().text = text;
+        button.gameObject.SetActive(true);
+
+        // places button where specified by setting it as a children of location
+        button.transform.SetParent(location.transform, false);
+
+        // apply action whenever clicked
+        button.onClick.AddListener(action(button));
+        return button;
+    }
+
+    // overloads CreateButton to be able to take an action with no parameters
+    public static Button CreateButton(Button template, Component location,
+                                      string text, UnityAction action)
+    {
+        return CreateButton(template, location, text, (_) => action);
+    }
+
+
+
     // clears and recreates games folder, REMOVES ALL SAVED GAMES!!!
-    public static void DeleteAllSavedGames() 
+    public static void DeleteAllSavedGames()
     {
         // recreates directory if it is not there
         Directory.CreateDirectory(gamesFolderPath);
         // removes all files inside
-        foreach (string path in Directory.GetFiles(gamesFolderPath)) 
+        foreach (string path in Directory.GetFiles(gamesFolderPath))
         {
             File.Delete(path);
         }
@@ -34,7 +63,7 @@ public class Utility : MonoBehaviour
 
     // delete objects queued for deletion (all objects in objsToDelete)
     //  and clear the list for re-use
-    public static void DeleteQueuedObjects() 
+    public static void DeleteQueuedObjects()
     {
         // delete each object
         foreach (GameObject obj in objsToDelete)
@@ -43,6 +72,25 @@ public class Utility : MonoBehaviour
         }
         objsToDelete.Clear(); // empty list for reuse
     }
+
+
+    // checks that string entered is alphanumeric, 
+    //  and is not the empty string ("")
+    //  does NOT check for name crashes
+    public static bool EnsureProperName(string str)
+    {
+        //TODO
+        return true;
+    }
+
+
+    //TODO TEMP
+    public static T Identity<T>(T value)
+    {
+        return value;
+    }
+
+
 
     // this makes planes
     public static void Tile(Vector3 start, GameObject plane, float width, byte sqsXDir, byte sqsZDir,
@@ -89,7 +137,10 @@ public class Utility : MonoBehaviour
                         GameObject objMade = 
                             Instantiate(plane, new Vector3(posX, start.y, posZ), Quaternion.identity);
 
-                        extraAct(objMade, x, z, xSmall, zSmall);
+                        // do this method with arguments of object instantiated,
+                        //  position of large square in board, 
+                        //  position of small slot in large square
+                        extraAct(objMade, z, x, zSmall, xSmall);
 
 
 

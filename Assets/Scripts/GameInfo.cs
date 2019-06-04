@@ -1,9 +1,25 @@
 ﻿using System.Collections.Generic;
 
+/* CURRENT LIST OF CONSTRAINTS ON A GAME
+ *  BOARD SIZE: 256 x 256 max, at least 1 by 1
+ *  MAX NUMBER OF PIECES: 255
+ * 
+ * 
+ * 
+ */
+
+
 // class representing the information needed to play a custom game 
 [System.Serializable]
 public class GameInfo
 {
+    /*** STATIC VARIABLES ***/
+    // the max number of types of pieces is capped by the representing type
+    //        As of the first version, this is byte, and capped at 
+    //        255 pieces (not 256 due to possibility of no piece)
+    private const byte maxNumOfPieces = byte.MaxValue;
+
+
     /*** INSTANCE VARIABLES ***/
     // state of the board at the start of the game
     public BoardInfo boardAtStart;
@@ -13,11 +29,7 @@ public class GameInfo
     public byte numOfCols;
 
     // pieces of the game, with indexes used as a sort of identifier
-    // NOTE: the max number of types of pieces is capped by the type of  
-    //        arrays representing board states
-    //        As of the first version, this is char[][], and capped at 
-    //        255 pieces (not 256 due to possibility of no piece)
-    public PieceInfo[] pieces;
+    public List<PieceInfo> pieces;
 
     // the "resolution in cubes" of the piece 
     //  would be 'n' for pieces made on an n x n grid
@@ -35,7 +47,7 @@ public class GameInfo
 
 
     /*** CONSTRUCTORS ***/
-    public GameInfo(BoardInfo brdStrt, PieceInfo[] pcs)
+    public GameInfo(BoardInfo brdStrt, List<PieceInfo> pcs)
     {
         this.boardAtStart = brdStrt;
         this.pieces = pcs;
@@ -68,4 +80,25 @@ public class GameInfo
 
         return oldBoard;
     }
+
+
+    /*** INSTANCE METHODS ***/
+    // trys to add piece to the list of pieces and returns true iff successful
+    public bool AddPiece(PieceInfo pce) 
+    { 
+        if (numOfPieces < maxNumOfPieces) 
+        {
+            pieces.Add(pce);
+            numOfPieces++;
+
+            return true;
+        }
+        else // cannot add anymore if max number of pieces is reached
+        {
+            return false;
+        }
+    }
+    
+
+
 }
