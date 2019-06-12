@@ -105,8 +105,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6f3e33ab9446409e800b2cdda8ad647, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rowPos: 0
-  colPos: 0
-  pieceCubeBuildMode: {fileID: 6248593075428455250, guid: db0e5176aa238447a8b9738d9cd84d22,
-    type: 3}
-  slotId: 0
+  hasPieceAbove: 1
