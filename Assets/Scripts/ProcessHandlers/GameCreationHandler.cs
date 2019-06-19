@@ -37,7 +37,7 @@ public class GameCreationHandler : ProcessHandler<GameCreationHandler>
     // the winning conditions of the game
     //   in pairs of (structure, winner) where if structure is found in the board
     //   somewhere, then winner will win the game
-    internal List<Tuple<byte[,], byte>> winConditions;
+    internal List<WinCondInfo> winConditions;
 
 
 
@@ -46,26 +46,22 @@ public class GameCreationHandler : ProcessHandler<GameCreationHandler>
     /*** INSTANCE PROPERTIES ***/
     internal byte NumOfRows 
     {
-        get 
-        {
-            return boardAtStart.NumOfRows;
-        }
+        get => boardAtStart.NumOfRows;
     }
 
     internal byte NumOfCols
     {
-        get
-        {
-            return boardAtStart.NumOfCols;
-        }
+        get => boardAtStart.NumOfCols;
     }
 
     internal float GapSize
     { 
-        get 
-        {
-            return boardAtStart.GapSize;
-        }
+        get => boardAtStart.GapSize;
+    }
+
+    internal float SquareSize
+    {
+        get => BoardCreationHandler.GetHandler().BoardSquareSize;
     }
 
 
@@ -95,6 +91,28 @@ public class GameCreationHandler : ProcessHandler<GameCreationHandler>
 
 
 
+    // creates a "PosInfo[,][,] array-like obj" which updates when source is updated
+    internal Linked2D<byte, PosInfo[,]> LinkVisRepTo(byte[,] source)
+    {
+        return new Linked2D<byte, PosInfo[,]>
+            (
+                source,
+                (i) =>
+                {
+                    if (i == PieceInfo.noPiece || i == PieceInfo.noSquare)
+                    {
+                        return PosInfo.NothingMatrix(pieceResolution, pieceResolution);
+                    }
+                    else
+                    {
+                        return pieces[i].visualRepresentation;
+                    }
+                }
+            );
+    }
+
+
+
     // resets variables used for creation of game
     internal void StartNewGame(DimensionsData data) 
     {
@@ -109,7 +127,13 @@ public class GameCreationHandler : ProcessHandler<GameCreationHandler>
             );
 
         pieces = new List<PieceInfo>();
+
         rules = new Dictionary<byte, Dictionary<byte, List<RuleInfo>>>();
-        winConditions = new List<Tuple<byte[,], byte>>();
+        for (byte plyr = 0; plyr < numOfPlayers; plyr++) 
+        {
+            rules[plyr] = new Dictionary<byte, List<RuleInfo>>();
+        }
+        
+        winConditions = new List<WinCondInfo>();
     }
 }

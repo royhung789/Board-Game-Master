@@ -9,6 +9,7 @@ public class ProgramData
         ChooseBoardDim,
         ChooseGame,
         ChooseRuleArea,
+        ChooseWinCondArea,
         Intro,
         MakeBoard,
         MakeGame,

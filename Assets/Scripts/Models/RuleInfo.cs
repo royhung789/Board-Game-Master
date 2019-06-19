@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 // class representing a 'rule' of a custom game
 //   e.g. Move Piece in Checkers for moving a piece diagonally
@@ -9,12 +9,25 @@ public class RuleInfo
     /*** INNER CLASSES ***/
     // whether a piece in a certain square is changed by the rule or not
     [System.Serializable]
-    public class SquareChange 
+    public abstract class SquareChange 
     { 
         private SquareChange() { } // hides default constructor
+        public abstract byte PieceChangedToOrNoPiece();
+        public abstract List<byte> PieceChangedFromOrEmpty();
 
         [System.Serializable]
-        public class Unaffected : SquareChange { }
+        public class Unaffected : SquareChange 
+        {
+            public override byte PieceChangedToOrNoPiece()
+            {
+                return PieceInfo.noPiece;
+            }
+
+            public override List<byte> PieceChangedFromOrEmpty()
+            {
+                return new List<byte>();
+            }
+        }
         [System.Serializable]
         public class Changed : SquareChange 
         {
@@ -24,30 +37,53 @@ public class RuleInfo
             // The piece to be replaced (or to replace the old piece)
             // NOTE: This program currently only supports one piece here
             public byte pieceChangedTo;
+
+            internal Changed(List<byte> from, byte to) 
+            {
+                pieceChangedFrom = from;
+                pieceChangedTo = to;
+            }
+
+            public override byte PieceChangedToOrNoPiece()
+            {
+                return pieceChangedTo;
+            }
+
+            public override List<byte> PieceChangedFromOrEmpty()
+            {
+                return pieceChangedFrom;
+            }
         }
+
+
 
         // returns a square matrix representing area of size specified
         //   all squares considered unaffected
         public static SquareChange[,] GetDefaultAreaAffected(byte size) 
         {
-            SquareChange[,] area = new Unaffected[size, size];
-            area.Initialize();
+            SquareChange[,] area = new SquareChange[size, size];
+            area.FillWith((i, j) => new Unaffected());
             return area;
         }
     }
 
+
+
+
+
+
     /*** INSTANCE VARIABLES ***/
-    // the 'relative changes' of the area affected
-    internal readonly SquareChange[,] relChanges; //TODO make indexing not mutate?
+    // true iff. rule is activated from panel, without clicking piece/board
+    public readonly bool isPanelRule;
 
     // the name of this rule 
     public readonly string name;
 
-    // rule can only be activated on this player's turn (represented with a byte)
-    public readonly byte usableOn;
-
     // the player playing the next turn
     public readonly byte nextPlayer;
+
+    // the 'relative changes' of the area affected
+    internal readonly SquareChange[,] relChanges; //TODO make indexing not mutate?
 
     // index and location of the trigger piece in relChange
     //  the trigger piece is the one which activates the rule when clicked
@@ -55,7 +91,42 @@ public class RuleInfo
     //  PieceInfo.noSquare for panel rules (activated from scroll view during play)
     public readonly byte triggerPiece;
     public readonly byte triggerRow;
-    public readonly byte triggerCol;  
+    public readonly byte triggerCol;
+
+    // rule can only be activated on this player's turn (represented with a byte)
+    public readonly byte usableOn;
+
+
+
+
+    /*** CONSTRUCTORS ***/
+    // for panel rules
+    internal RuleInfo(string nm, byte nxt, SquareChange[,] rel, byte useOn) 
+    {
+        isPanelRule = true;
+        name = nm;
+        nextPlayer = nxt;
+        relChanges = rel;
+        triggerPiece = PieceInfo.noSquare; // used from panel
+        usableOn = useOn;
+    }
+
+
+
+    // for trigger rules
+    internal RuleInfo(string nm, byte nxt, SquareChange[,] rel, 
+                      byte trigPce, byte trigR, byte trigC, byte useOn)
+    {
+        isPanelRule = false;
+        name = nm;
+        nextPlayer = nxt;
+        relChanges = rel;
+        triggerPiece = trigPce;
+        triggerRow = trigR;
+        triggerCol = trigC;
+        usableOn = useOn;
+    }
+
 
 
 
@@ -67,6 +138,8 @@ public class RuleInfo
     //   If the rule cannot be applied, the list is empty
     public List<Game> Apply(Game gm, byte tRow, byte tCol) 
     {
+        Debug.Log("ATTEMPTING TO APPLY: " + name);
+
         // get position of bottom left corner of area changed
         //  checks whether they are both still within range of being a byte
         bool originStillBytes = tRow.SubCheck(triggerRow, out byte originRow);
@@ -107,7 +180,9 @@ public class RuleInfo
                     {
                         // only activates if change is a SquareChange.Changed
                         case SquareChange.Changed sqChng: 
-                            if (!sqChng.pieceChangedFrom.Contains(pce)) 
+                            if (!sqChng.pieceChangedFrom.Contains(pce) &&
+                                !(sqChng.pieceChangedFrom.Count == 0 && 
+                                  pce == PieceInfo.noPiece)) 
                             {
                                 // piece here is incompatible with rule
                                 // -> rule cannot be applied -> no resulting state

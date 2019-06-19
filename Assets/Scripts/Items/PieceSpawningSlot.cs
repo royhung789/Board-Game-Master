@@ -8,7 +8,7 @@ using System.Collections.Generic;
 // 
 // used to spawn parts of a game piece, a square-worth of them spawns 
 //   an entire piece
-public class PieceSpawningSlot : PieceSlot
+public class PieceSpawningSlot : PieceSlot<PieceSpawningSlot>
 {
     /*** INSTANCE VARIABLES ***/
     // holo board this piece slot is in (if it is)
@@ -37,7 +37,12 @@ public class PieceSpawningSlot : PieceSlot
     // called from virtual board this is in (if it is) when the associated square changes
     internal override void OnUpdate() 
     {
-        Spawn();
+        VirtualBoard<PieceSpawningSlot> vboard = GetVirtualBoard();
+        if (Spawn(vboard.boardRepresentation[boardRow, boardCol], 
+            out PieceCubePlayMode cubeMade)) 
+        {
+            vboard.otherObjsOnBoard.Add(cubeMade.gameObject);
+        }
     }
 
 
@@ -50,7 +55,12 @@ public class PieceSpawningSlot : PieceSlot
             PosInfo.Overlay(holoBrd.boardRepresentation[boardRow, boardCol], 
                             holoBrd.hologramResolution);
 
-        Spawn(visRep, out PieceCubePlayMode cubeMade); 
+        GetComponent<Renderer>().material.color = 
+            GetHoloBoard().boardColours[boardRow, boardCol];
+        if (Spawn(visRep, out PieceCubePlayMode cubeMade)) 
+        {
+            holoBrd.otherObjsOnBoard.Add(cubeMade.gameObject);
+        } 
     }
 
 
@@ -67,7 +77,7 @@ public class PieceSpawningSlot : PieceSlot
         Debug.Log("COLUMN POS. OF SQUARE CLICKED: " + boardCol);
 
         // update boards this slot is in
-        VirtualBoard<PieceSpawningSlot> vboard = GetVirtualBoard<PieceSpawningSlot>();
+        VirtualBoard<PieceSpawningSlot> vboard = GetVirtualBoard();
         if (vboard != null)
         {
             vboard.OnSquareClicked(boardRow, boardCol);
@@ -216,39 +226,6 @@ public class PieceSpawningSlot : PieceSlot
 
 
 
-    // spawns the cube above this slot, if there should be one, 
-    //  coloured according to pieceVisualRepresentation of piece on virtual board
-    internal void Spawn() 
-    {
-        VirtualBoard<PieceSpawningSlot> vBoard = GetVirtualBoard<PieceSpawningSlot>();
 
-        // get information about piece above this slot, 
-        //  and whether there's even one or not
-        byte pieceHere = vBoard.info.BoardStateRepresentation[boardRow, boardCol];
-
-        // only destroy cube above if there's no piece to spawn
-        if (pieceHere == PieceInfo.noPiece) 
-        {
-            // destroys old cube above this slot to clear room for new cube
-            // checks that it exists
-            if (pieceCube != null && pieceCube.gameObject != null)
-            {
-                Destroy(pieceCube.gameObject); 
-            }
-        } 
-        else
-        {
-            // see piece cube above
-            PieceInfo pieceInfo = vBoard.pieces[pieceHere];
-            PosInfo[,] posInfos = pieceInfo.visualRepresentation;
-
-            // spawns it 
-            if (Spawn(posInfos, out PieceCubePlayMode cubeMadeScr)) 
-            {
-                // note that this object should be destroyed later
-                vBoard.otherObjsOnBoard.Add(cubeMadeScr.gameObject);
-            }
-        }
-    }
 
 }

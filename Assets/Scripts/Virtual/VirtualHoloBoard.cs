@@ -22,6 +22,9 @@ public class VirtualHoloBoard
     /// </summary>
     private readonly List<PieceSpawningSlot>[,] slots;
 
+    // the colours of the squares of the board
+    internal Color[,] boardColours;
+
     // matrix of visual representations of what's on a board square
     internal readonly List<PosInfo[,]>[,] boardRepresentation;
 
@@ -53,18 +56,43 @@ public class VirtualHoloBoard
 
 
     /*** CONSTRUCTORS ***/
-    internal VirtualHoloBoard(byte sizeBoard, byte sizeHologram, float sizeSq, float sizeGap,
-                              UnityAction<VirtualHoloBoard, byte, byte> handler) 
+    internal VirtualHoloBoard(Color colour, List<PosInfo[,]>[,] board, byte sizeBoard, 
+                              byte sizeHologram, float sizeSq, float sizeGap,
+                              UnityAction<VirtualHoloBoard, byte, byte> handler)
     {
-        slots = new List<PieceSpawningSlot>[sizeBoard,sizeBoard];
+        slots = new List<PieceSpawningSlot>[sizeBoard, sizeBoard];
         slots.FillWith((i, j) => new List<PieceSpawningSlot>());
 
-        boardRepresentation = new List<PosInfo[,]>[sizeBoard, sizeBoard];
+        Color[,] colours = new Color[sizeBoard, sizeBoard];
+        colours.ReplaceAllWith((i, j) => colour);
+        boardColours = colours;
+
+        if (board == null) // default case
+        {
+            List<PosInfo[,]>[,] brd = new List<PosInfo[,]>[sizeBoard, sizeBoard];
+            brd.FillWith((i, j) => new List<PosInfo[,]>());
+            boardRepresentation = brd;
+        }
+        else
+        {
+            boardRepresentation = board;
+        }
+
         hologramResolution = sizeHologram;
         gapSize = sizeGap;
         otherObjsOnBoard = new List<Object>();
         onClickHandler = handler;
         squareSize = sizeSq;
+    }
+
+    internal VirtualHoloBoard(byte sizeBoard, byte sizeHologram, float sizeSq, float sizeGap,
+                              UnityAction<VirtualHoloBoard, byte, byte> handler)
+        : this(RuleCreationHandler.unaffectedSquareColour,
+               null,
+               sizeBoard, sizeHologram, 
+               sizeSq, sizeGap, handler)
+    {
+
     }
 
 
@@ -110,13 +138,21 @@ public class VirtualHoloBoard
     internal void SpawnBoard(Vector3 centrePos) 
     {
         // TODO
+        // refill with fresh slots
+        slots.ReplaceAllWith((i, j) => new List<PieceSpawningSlot>());
+
         float sideLength = AreaSize * squareSize + (AreaSize - 1) * squareSize * gapSize;
         Vector3 bottomLeft = new Vector3(-sideLength / 2f, 0f, -sideLength / 2f);
 
+        float subSlotSize = squareSize / hologramResolution;
+        bottomLeft.x += subSlotSize / 2;
+        bottomLeft.z += subSlotSize / 2;
+        
         Vector3 start = bottomLeft + centrePos;
 
         // tiles and assigns appropriate variables to piece spawning slots
         PieceSpawningSlot spawnSlot = Prefabs.GetPrefabs().pieceSpawningSlot;
+
         byte areaSide = (byte) boardRepresentation.GetLength(0);
         float slotSize = (squareSize / 10) / hologramResolution;
 
@@ -134,7 +170,9 @@ public class VirtualHoloBoard
                 slotScr.boardCol = boardC;
                 slotScr.SetHoloBoard(this);
 
-
+                // colour the slot
+                slotScr.gameObject.GetComponent<Renderer>().material.color =
+                    boardColours[boardR, boardC];
 
                 // notes that this spawning slot is currently used
                 slots[boardR, boardC].Add(slotScr);

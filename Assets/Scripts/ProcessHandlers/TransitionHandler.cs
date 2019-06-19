@@ -23,6 +23,7 @@ public class TransitionHandler : ProcessHandler<TransitionHandler>
     private ChooseBoardDim ChooseBoardDim;
     private ChooseGame ChooseGame;
     private ChooseRuleArea ChooseRuleArea;
+    private ChooseWinCondArea ChooseWinCondArea;
     private Intro Intro;
     private MakeBoard MakeBoard;
     private MakeGame MakeGame;
@@ -47,6 +48,7 @@ public class TransitionHandler : ProcessHandler<TransitionHandler>
         ChooseBoardDim = Camera.main.GetComponent<ChooseBoardDim>();
         ChooseGame = Camera.main.GetComponent<ChooseGame>();
         ChooseRuleArea = Camera.main.GetComponent<ChooseRuleArea>();
+        ChooseWinCondArea = Camera.main.GetComponent<ChooseWinCondArea>();
         Intro = Camera.main.GetComponent<Intro>();
         MakeBoard = Camera.main.GetComponent<MakeBoard>();
         MakeGame = Camera.main.GetComponent<MakeGame>();
@@ -63,6 +65,7 @@ public class TransitionHandler : ProcessHandler<TransitionHandler>
 
 
     /*** INSTANCE METHODS ***/
+    // should be called only once
     internal void AddListenersToButtons() 
     {
         // Add handlers to buttons which transitions between states 
@@ -102,6 +105,11 @@ public class TransitionHandler : ProcessHandler<TransitionHandler>
                 () => Transition(MakeGame, ChooseRuleArea) 
             );
 
+        MakeGame.makeWinCondButton.onClick.AddListener
+            (
+                () => Transition(MakeGame, ChooseWinCondArea)
+            );
+
         MakeBoard.doneButton.onClick.AddListener
             (
                 () => Transition(MakeBoard, MakeGame)
@@ -115,6 +123,21 @@ public class TransitionHandler : ProcessHandler<TransitionHandler>
         ChooseRuleArea.startMakingRuleButton.onClick.AddListener
             (
                 () => Transition(ChooseRuleArea, MakeRule)
+            );
+
+        MakeRule.doneButton.onClick.AddListener
+            (
+                () => Transition(MakeRule, MakeGame)
+            );
+
+        ChooseWinCondArea.startButton.onClick.AddListener
+            (
+                () => Transition(ChooseWinCondArea, MakeWinCond)
+            );
+
+        MakeWinCond.doneButton.onClick.AddListener
+            (
+                () => Transition(MakeWinCond, MakeGame)
             );
 
 
@@ -143,6 +166,8 @@ public class TransitionHandler : ProcessHandler<TransitionHandler>
                 return ChooseGame.GetCanvas();
             case ProgramData.State.ChooseRuleArea:
                 return ChooseRuleArea.GetCanvas();
+            case ProgramData.State.ChooseWinCondArea:
+                return ChooseWinCondArea.GetCanvas();
             case ProgramData.State.Intro:
                 return Intro.GetCanvas();
             case ProgramData.State.MakeBoard:
@@ -197,8 +222,9 @@ public class TransitionHandler : ProcessHandler<TransitionHandler>
         prev.GetCanvas().gameObject.SetActive(false);
         next.GetCanvas().gameObject.SetActive(true);
 
-        // move the camera to the pre-specified location
+        // move the camera to the pre-specified location and orientation
         Camera.main.transform.position = SpatialConfigs.commonCameraPosition;
+        Camera.main.transform.rotation = SpatialConfigs.commonCameraOrientation;
 
         // call corresponding method upon entering state, 
         //   passes arguments returned from previous state

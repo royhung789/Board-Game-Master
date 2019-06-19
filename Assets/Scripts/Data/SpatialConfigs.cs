@@ -6,6 +6,7 @@ public static class SpatialConfigs // TODO init at start ?
     /*** STATIC VARIABLES ***/
     // location to move camera to at the start of each process
     internal static Vector3 commonCameraPosition = new Vector3(0f, 100f, 0f);
+    internal static Quaternion commonCameraOrientation = Quaternion.Euler(90f, 0f, 0f);
 
     // y-distance gap of board and camera 
     internal static float defaultBoardDistBelowCamera = 90f;

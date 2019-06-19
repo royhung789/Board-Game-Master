@@ -26,35 +26,11 @@ internal sealed class MakePiece : Process<MakePiece>, IAssociatedState<GameCreat
     public void OnEnterState(IAssociatedStateLeave<GameCreationHandler> previousState, 
                                 GameCreationHandler gameHandler)
     {
+        SetupUIs();
+
         // prepares for the creation of a new piece
         PieceCreationHandler pceHandler = PieceCreationHandler.GetHandler();
-        BoardInfo creationSquare = pceHandler.StartNewPiece(gameHandler.pieceResolution);
-
-        VirtualBoard<PieceBuildingSlot> vBoard = new VirtualBoard<PieceBuildingSlot>
-            (
-                creationSquare,
-                gameHandler.pieces,
-                1,
-                Prefabs.GetPrefabs().pieceBuildingSlot,
-                (brd, r, c) => 
-                {
-                    PosInfo curColour = pceHandler.pieceBeingMadeRep[r, c];
-                    switch (curColour) 
-                    {
-                        case PosInfo.RGBData colour:
-                            pceHandler.pieceBeingMadeRep[r, c] = new PosInfo.Nothing();
-                            break;
-                        case PosInfo.Nothing none:
-                            // TODO TEMP add ability to choose colours!
-                            pceHandler.pieceBeingMadeRep[r, c] =
-                                new PosInfo.RGBData(0, 0, 0); 
-                            break;
-                    }
-                }
-            );
-
-        pceHandler.VirtualBoardUsed = vBoard;
-        vBoard.SpawnBoard(SpatialConfigs.commonBoardOrigin);
+        pceHandler.StartNewPiece();
     }
 
 
@@ -75,5 +51,13 @@ internal sealed class MakePiece : Process<MakePiece>, IAssociatedState<GameCreat
 
         // returns piece made
         return handler.FinalizePiece(pceName);
+    }
+
+
+
+    private void SetupUIs() 
+    {
+        // clear name input field 
+        nameInput.text = "";
     }
 }

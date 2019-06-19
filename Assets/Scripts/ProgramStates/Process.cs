@@ -11,3 +11,4 @@ public abstract class Process<P> : MonoBehaviour where P : Process<P>
         return Camera.main.GetComponent<P>();
     }
 }
+

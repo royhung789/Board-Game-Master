@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 
 // collection of useful variables and methods useful throughout the program
-public class Utility : MonoBehaviour
+public class Utility
 {
     /*** STATIC VARIABLES ***/
     // all the game objects to delete after a (creation/play) session
@@ -23,7 +23,7 @@ public class Utility : MonoBehaviour
                                       string text, Func<Button, UnityAction> action)
     {
         // creates button, set text, activates it
-        Button button = Instantiate(template);
+        Button button = UnityEngine.Object.Instantiate(template);
         button.GetComponentInChildren<Text>().text = text;
         button.gameObject.SetActive(true);
 
@@ -36,7 +36,7 @@ public class Utility : MonoBehaviour
     }
 
     // overloads CreateButton to be able to take an action with no parameters
-    public static Button CreateButton(Button template, Component location,
+    internal static Button CreateButton(Button template, Component location,
                                       string text, UnityAction action)
     {
         return CreateButton(template, location, text, (_) => action);
@@ -45,7 +45,7 @@ public class Utility : MonoBehaviour
 
 
     // clears and recreates games folder, REMOVES ALL SAVED GAMES!!!
-    public static void DeleteAllSavedGames()
+    internal static void DeleteAllSavedGames()
     {
         // recreates directory if it is not there
         Directory.CreateDirectory(ProgramData.gamesFolderPath);
@@ -64,7 +64,7 @@ public class Utility : MonoBehaviour
         // delete each object
         foreach (GameObject obj in objsToDelete)
         {
-            Destroy(obj);
+            UnityEngine.Object.Destroy(obj);
         }
         objsToDelete.Clear(); // empty list for reuse
     }
@@ -78,6 +78,11 @@ public class Utility : MonoBehaviour
         //TODO
         return true;
     }
+
+
+
+    // does nothing to argument and returns it
+    public static T Identity<T>(T x) { return x; } 
 
 
 
@@ -123,8 +128,9 @@ public class Utility : MonoBehaviour
                         float posZ = start.z + spaceLarge * z + spaceSmall * zSmall;
 
                         //initial position is 'start'
-                        GameObject objMade = 
-                            Instantiate(plane, new Vector3(posX, start.y, posZ), Quaternion.identity);
+                        GameObject objMade = UnityEngine.Object
+                            .Instantiate(plane, new Vector3(posX, start.y, posZ), 
+                                         Quaternion.identity);
 
                         // do this method with arguments of object instantiated,
                         //  position of large square in board, 

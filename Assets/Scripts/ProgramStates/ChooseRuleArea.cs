@@ -65,5 +65,6 @@ internal sealed class ChooseRuleArea : Process<ChooseRuleArea>,
     {
         areaSizeInput.text = "";
         whichPlayerUseInput.text = "";
+        whoseTurnAfterInput.text = "";
     }
 }

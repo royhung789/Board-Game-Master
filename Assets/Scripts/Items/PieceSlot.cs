@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-public abstract class PieceSlot : MonoBehaviour
+public abstract class PieceSlot<Slot> : MonoBehaviour where Slot : PieceSlot<Slot>
 {
     /*** STATIC VARIABLE ***/
     // fixed variables determining size and position of cube spawned
@@ -9,8 +9,11 @@ public abstract class PieceSlot : MonoBehaviour
     // default cube size: 1x1x1, default plane size:10x10
     protected const float relScale = 10f;
 
+    // prefabs corresponding to Slot type
+    internal static Slot template;
 
 
+     
     /***  INSTANCE VARIABLES ***/
     // piece cube spawned above this slot 
     internal PieceCube pieceCube;
@@ -26,8 +29,7 @@ public abstract class PieceSlot : MonoBehaviour
 
     // virtual board this piece spawn slot is in (if it is)
     //   only one of these two will be used for a certain slot type
-    private VirtualBoard<PieceBuildingSlot> virtualBoardBuild;
-    private VirtualBoard<PieceSpawningSlot> virtualBoardSpawn;
+    private VirtualBoard<Slot> virtualBoard;
 
 
 
@@ -47,45 +49,28 @@ public abstract class PieceSlot : MonoBehaviour
 
 
 
+
     /*** INSTANCE METHODS ***/
     // recovers virtual board this piece slot is associated with
-    internal VirtualBoard<Slot> GetVirtualBoard<Slot>() where Slot : PieceSlot 
-    { 
-        if (typeof(Slot) == typeof(PieceBuildingSlot)) 
-        {
-            return virtualBoardBuild as VirtualBoard<Slot>;
-        } 
-        else if (typeof(Slot) == typeof(PieceSpawningSlot)) 
-        {
-            return virtualBoardSpawn as VirtualBoard<Slot>;
-        } 
-        else // guard against mismatch 
-        {
-            Debug.Log("Attempted to recover non-build, non-spawn virtual board");
-            throw new System.Exception("Invalid Type Argument");
-        }
+    internal VirtualBoard<Slot> GetVirtualBoard() 
+    {
+        return virtualBoard;
     }
 
 
     // assign this slot to a virtual board which manages it
-    internal void SetVirtualBoard<Slot>(VirtualBoard<Slot> vBoard) where Slot : PieceSlot 
-    { 
-        switch (vBoard) 
-        {
-            case VirtualBoard<PieceBuildingSlot> buildBoard when this.GetType() == typeof(PieceBuildingSlot):
-                virtualBoardBuild = buildBoard;
-                break;
-            case VirtualBoard<PieceSpawningSlot> spawnBoard when this.GetType() == typeof(PieceSpawningSlot):
-                virtualBoardSpawn = spawnBoard;
-                break;
-            default:
-                Debug.Log("Mismatched between piece-slot assigned and virtual board");
-                break;
-        }
+    internal void SetVirtualBoard(VirtualBoard<Slot> vBoard)
+    {
+        virtualBoard = vBoard;
     }
 
 
 
     // method to be called upon creation of PieceSlot game object
     internal abstract void OnUpdate();
+
+
+
+
+
 }

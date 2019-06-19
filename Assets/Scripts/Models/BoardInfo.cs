@@ -132,6 +132,8 @@ public class BoardInfo
         return result;
     }
 
+
+
     // returns true and assign piece at position r,c to 'piece'
     //  OR return false if unsuccessful, e.g. index out of bound
     //  Note that even if indexing succeeds, this may still return false,

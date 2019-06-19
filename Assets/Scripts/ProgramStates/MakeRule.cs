@@ -13,17 +13,194 @@ internal sealed class MakeRule : Process<MakeRule>,
     /*** INSTANCE VARIABLES ***/
     [SerializeField] internal Canvas canvas;
 
+    [SerializeField] internal Button allPiecesButton;
     [SerializeField] internal Button doneButton;
+    [SerializeField] internal Button noPieceButton;
     [SerializeField] internal Button removePieceButton;
+    [SerializeField] internal Button unaffectedButton;
     [SerializeField] internal Button pieceButtonTemplate;
     [SerializeField] internal Button setTriggerPieceButton;
     [SerializeField] internal Button toggleBeforeAfterButton;
     [SerializeField] internal Button togglePanelTriggerButton;
+    [SerializeField] internal InputField nameInput;
     [SerializeField] internal ScrollRect selectPieceScrView;
 
 
 
-    
+
+    /*** START ****/
+    // Adds handlers to UI elements
+    private void Start()
+    {
+        RuleCreationHandler ruleHandler = RuleCreationHandler.GetHandler();
+
+        // 
+        selectPieceScrView.SetChoosableButtons(new System.Collections.Generic.List<Button> 
+            { 
+                allPiecesButton,
+                noPieceButton,
+                removePieceButton,
+                unaffectedButton,
+                setTriggerPieceButton,
+            });
+
+        // makes scrollview highlight chosen item (only)
+        selectPieceScrView.WhenChosenChanges
+            ((scrView) =>
+                delegate
+                {
+                    // unhighlights other buttons
+                    scrView.ForEach<Button>
+                    ((btn) =>
+                    {
+                        btn.GetComponent<Image>().color = Color.white;
+                    }
+                    );
+
+                    removePieceButton.GetComponent<Image>().color = Color.white;
+                    setTriggerPieceButton.GetComponent<Image>().color = Color.white;
+                    allPiecesButton.GetComponent<Image>().color = Color.white;
+                    noPieceButton.GetComponent<Image>().color = Color.white;
+                    unaffectedButton.GetComponent<Image>().color = Color.white;
+
+                    // highlights chosen
+                    if (scrView.GetChosenItem<Button>(out Button chosen) &&
+                        chosen != null)
+                    {
+                        switch (chosen) 
+                        {
+                            case Button btn when btn == setTriggerPieceButton:
+                                if (ruleHandler.SelectingTriggerPiece)
+                                {
+                                    setTriggerPieceButton.GetComponent<Image>().color =
+                                        RuleCreationHandler.setTriggerTrueColour;
+                                } 
+                                else 
+                                {
+                                    setTriggerPieceButton.GetComponent<Image>().color =
+                                        RuleCreationHandler.setTriggerFalseColour;
+                                }
+                                break;
+                            case Button otherBtn:
+                                chosen.GetComponent<Image>().color =
+                                RuleCreationHandler.selectedPieceColour;
+                                ruleHandler.SelectingTriggerPiece = false;
+                                break;
+                        }
+                    }
+                }
+            );
+
+        // places all the pieces on square clicked
+        allPiecesButton.onClick.AddListener
+            (delegate
+            {
+                ruleHandler.PieceSelected =
+                                    new RuleCreationHandler.PieceSelection
+                                                           .AllPieces();
+
+                // highlights button
+                selectPieceScrView.SetChosenItem(allPiecesButton);
+
+            });
+
+        // only applicable if there is NOT a piece there
+        noPieceButton.onClick.AddListener
+            (delegate
+            {
+                ruleHandler.PieceSelected =
+                    new RuleCreationHandler.PieceSelection
+                                           .NoPiece();
+
+                selectPieceScrView.SetChosenItem(noPieceButton);
+            });
+
+        // change piece selected when clicked
+        removePieceButton.onClick.AddListener
+            (delegate
+            {
+                ruleHandler.PieceSelected =
+                    new RuleCreationHandler.PieceSelection
+                                           .RemovePiece();
+
+                // highlights button
+                selectPieceScrView.SetChosenItem(removePieceButton);
+            });
+
+        // notifies handler and change button colour
+        setTriggerPieceButton.onClick.AddListener
+            (
+                delegate
+                {
+                    // toggle state
+                    ruleHandler.SelectingTriggerPiece =
+                        !ruleHandler.SelectingTriggerPiece;
+
+                    // unhighlights other button 
+                    selectPieceScrView.SetChosenItem(setTriggerPieceButton);
+                }
+            );
+
+        // switches between specifying the before and the after state of the area
+        toggleBeforeAfterButton.onClick.AddListener
+            (
+                delegate
+                {
+                    // toggle between setting before/setting after
+                    ruleHandler.SettingBoardAfter =
+                        !ruleHandler.SettingBoardAfter;
+
+                    if (ruleHandler.SettingBoardAfter) // if setting after state
+                    {
+                        toggleBeforeAfterButton.GetComponentInChildren<Text>().text =
+                            "SET AREA BEFORE";
+                    }
+                    else // if setting before state
+                    {
+                        toggleBeforeAfterButton.GetComponentInChildren<Text>().text =
+                            "SET AREA AFTER";
+                    }
+                }
+            );
+
+        // switches between panel rules and trigger rules
+        togglePanelTriggerButton.onClick.AddListener
+            (
+                delegate
+                {
+                    // toggle 
+                    ruleHandler.MakingTriggerRule =
+                        !ruleHandler.MakingTriggerRule;
+
+                    if (ruleHandler.MakingTriggerRule)
+                    {
+                        togglePanelTriggerButton.GetComponentInChildren<Text>().text =
+                            "CHANGE TO PANEL RULE";
+                    }
+                    else
+                    {
+                        togglePanelTriggerButton.GetComponentInChildren<Text>().text =
+                            "CHANGE TO TRIGGER RULE";
+                    }
+                }
+            );
+
+        // changes square selected to become unaffected
+        unaffectedButton.onClick.AddListener
+            (delegate
+            {
+                ruleHandler.PieceSelected =
+                    new RuleCreationHandler.PieceSelection
+                                           .Unaffected();
+
+                selectPieceScrView.SetChosenItem(unaffectedButton);
+            });
+    }
+
+
+
+
+
     /*** INSTANCE METHODS ***/
     public Canvas GetCanvas() { return canvas; }
     public ProgramData.State GetAssociatedState()
@@ -49,8 +226,21 @@ internal sealed class MakeRule : Process<MakeRule>,
 
     public RuleInfo OnLeaveState(IAssociatedStateEnter<RuleInfo> nextState)
     {
-        // TODO
-        throw new NotImplementedException();
+        RuleCreationHandler ruleHandler = RuleCreationHandler.GetHandler();
+
+        // destroys board displayed
+        if (ruleHandler.SettingBoardAfter) 
+        {
+            ruleHandler.HoloBoardAfter.DestroyBoard();
+        }
+        else 
+        {
+            ruleHandler.HoloBoardBefore.DestroyBoard();
+        }
+
+        // TODO add checks
+        RuleInfo ruleMade = ruleHandler.FinalizeRule(nameInput.text);
+        return ruleMade;
     }
 
 
@@ -59,148 +249,25 @@ internal sealed class MakeRule : Process<MakeRule>,
     {
         RuleCreationHandler ruleHandler = RuleCreationHandler.GetHandler();
 
-        // TODO this only needs to be setup the first time the screen is used
-        // makes scrollview highlight chosen item (only)
-        selectPieceScrView.WhenChosenChanges
-            ((scrView) =>
-                delegate
-                {
-                    // unhighlights other buttons
-                    scrView.ForEach<Button>
-                    ((btn) => 
-                        {
-                            btn.GetComponent<Image>().color = Color.white;
-                        }
-                    );
-                    removePieceButton.GetComponent<Image>().color = Color.white;
-                    setTriggerPieceButton.GetComponent<Image>().color = Color.white;
+        // clear old name input
+        nameInput.text = "";
 
-                    // highlights chosen
-                    if (scrView.GetChosenItem<Button>(out Button chosen))
-                    {
-                        chosen.GetComponent<Image>().color =
-                            RuleCreationHandler.selectedPieceColour;
-                    }
-                    else 
-                    {
-                        // TODO
-                        throw new System.NotImplementedException("ADD CHECK");
-                    }
-                }
-            );
+        // configure UI during the starting state
+        allPiecesButton.gameObject.SetActive(true);
+        setTriggerPieceButton.gameObject.SetActive(true);
+        toggleBeforeAfterButton.GetComponentInChildren<Text>().text =
+            "SET AREA AFTER";
+        togglePanelTriggerButton.GetComponentInChildren<Text>().text =
+            "CHANGE TO PANEL RULE";
 
-        // clear old buttons
-        selectPieceScrView.Clear(pieceButtonTemplate);
-
-        // populates scroll view
-        GameCreationHandler gameHandler = GameCreationHandler.GetHandler();
-
-        // populates the scroll view with buttons labeled with piece names
-        for (byte index = 0; index < gameHandler.pieces.Count; index++)
-        {
-            // index of the associated piece 
-            //  index should not be used directly in delegate, as it *will* change
-            //  after this iteration of the loop ends
-            // index and indexAssocPiece are kind of like up'value's in Lua
-            byte indexAssocPiece = index;
-            PieceInfo pce = gameHandler.pieces[index];
-
-            // creaets a button tagged with the piece name and attach it to scrollView
-            Button pceButton =
-                Utility.CreateButton(pieceButtonTemplate, selectPieceScrView.content,
-                pce.pieceName,
-                (btn) => delegate
-                {
-                    selectPieceScrView.SetChosenItem(btn);
-
-                    // TODO TEMP DEBUG
-                    // index of piece selected
-                    Debug.Log("INDEX OF PIECE SELECTED: " + indexAssocPiece);
-
-                    // notifies board creation handler
-                    ruleHandler.PieceSelected = indexAssocPiece;
-                });
-        }
-
-
-        // change piece selected when clicked
-        removePieceButton.onClick.AddListener
-            (delegate 
-            {
-                ruleHandler.PieceSelected = PieceInfo.noPiece;
-
-                // highlights button
-                selectPieceScrView.SetChosenItem(removePieceButton);
-            });
-
-        // notifies handler and change button colour
-        setTriggerPieceButton.onClick.AddListener
+        selectPieceScrView.RepopulatePieceButtons
             (
-                delegate 
-                {
-                    // toggle state
-                    ruleHandler.SelectingTriggerPiece = 
-                        !ruleHandler.SelectingTriggerPiece;
-
-                    // unhighlights other button 
-                    selectPieceScrView.SetChosenItem(setTriggerPieceButton);
-
-                    // colour according to state
-                    if (ruleHandler.SelectingTriggerPiece) 
-                    {
-                        setTriggerPieceButton.GetComponent<Image>().color =
-                            RuleCreationHandler.setTriggerTrueColour;
-                    }
-                    else 
-                    {
-                        setTriggerPieceButton.GetComponent<Image>().color =
-                            RuleCreationHandler.setTriggerFalseColour;
-                    }
-                }
-            );
-
-        // switches between specifying the before and the after state of the area
-        toggleBeforeAfterButton.onClick.AddListener
-            (
-                delegate 
-                {
-                    // toggle between setting before/setting after
-                    ruleHandler.SettingBoardAfter =
-                        !ruleHandler.SettingBoardAfter;
-
-                    if (ruleHandler.SettingBoardAfter) // if setting after state
-                    {
-                        toggleBeforeAfterButton.GetComponent<Text>().text =
-                            "SET AREA BEFORE APPLYING RULE";
-                    }
-                    else // if setting before state
-                    {
-                        toggleBeforeAfterButton.GetComponent<Text>().text =
-                            "SET ARE AFTER APPLYING RULE"; 
-                    }
-                }
-            );
-
-        // switches between panel rules and trigger rules
-        togglePanelTriggerButton.onClick.AddListener
-            (
-                delegate
-                {
-                    // toggle 
-                    ruleHandler.MakingTriggerRule =
-                        !ruleHandler.MakingTriggerRule;
-
-                    if (ruleHandler.MakingTriggerRule) 
-                    {
-                        togglePanelTriggerButton.GetComponent<Text>().text =
-                            "CHANGE TO PANEL RULE";
-                    }
-                    else 
-                    {
-                        togglePanelTriggerButton.GetComponent<Text>().text =
-                            "CHANGE TO TRIGGER RULE";
-                    }
-                }
+                pieceButtonTemplate, 
+                (btn, index) =>
+                     ruleHandler.PieceSelected =
+                                    new RuleCreationHandler
+                                            .PieceSelection
+                                            .OnePiece(index)
             );
     }
 }

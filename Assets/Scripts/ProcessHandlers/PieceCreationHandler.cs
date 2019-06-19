@@ -16,6 +16,7 @@ public class PieceCreationHandler : ProcessHandler<PieceCreationHandler>
     /*** INSTANCE VARIABLES ***/
     // size of build slots
     [SerializeField] internal float buildSlotScale = 1f;
+    [SerializeField] internal float buildSlotGapScale = 0.1f;
 
     // representation of piece being created
     internal byte pieceResolution;
@@ -47,12 +48,40 @@ public class PieceCreationHandler : ProcessHandler<PieceCreationHandler>
 
     // Clears information about old piece while setting up for new piece creation.
     //   returns the representation board of how the piece is made up of smaller cubes
-    internal BoardInfo StartNewPiece(byte pceRes) 
+    internal void StartNewPiece() 
     {
+        GameCreationHandler gameHandler = GameCreationHandler.GetHandler();
+        byte pceRes = gameHandler.pieceResolution;
         pieceResolution = pceRes;
         pieceBeingMadeRep = PosInfo.NothingMatrix(pceRes, pceRes);
 
-        return BoardInfo.DefaultBoard(pceRes, pceRes, BuildSlotSize, 0.1f, creationSquareColour);
+        VirtualBoard<PieceBuildingSlot> vBoard = new VirtualBoard<PieceBuildingSlot>
+            (
+                // TODO this is adhoc solution: vboard only used for tiling, really
+                new Linked2D<PosInfo, PosInfo[,]>(pieceBeingMadeRep, (_) => pieceBeingMadeRep),
+                new Linked2D<PosInfo, PosInfo>(pieceBeingMadeRep, (_) => creationSquareColour),
+                1,
+                BuildSlotSize,
+                buildSlotGapScale,
+                (brd, r, c) =>
+                {
+                    PosInfo curColour = pieceBeingMadeRep[r, c];
+                    switch (curColour)
+                    {
+                        case PosInfo.RGBData colour:
+                            pieceBeingMadeRep[r, c] = new PosInfo.Nothing();
+                            break;
+                        case PosInfo.Nothing none:
+                            // TODO add ability to choose colours!
+                            pieceBeingMadeRep[r, c] =
+                                new PosInfo.RGBData(0, 0, 0);
+                            break;
+                    }
+                }
+            );
+
+        VirtualBoardUsed = vBoard;
+        vBoard.SpawnBoard(SpatialConfigs.commonBoardOrigin);
     }
 
 }

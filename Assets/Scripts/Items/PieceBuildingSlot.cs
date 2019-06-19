@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 // Behaviour for slots used for making custom game pieces
-internal class PieceBuildingSlot : PieceSlot
+internal class PieceBuildingSlot : PieceSlot<PieceBuildingSlot>
 {
     /*** INSTANCE VARIABLES ***/
     // denotes whether there is a piece cube currently above this slot
@@ -43,7 +43,7 @@ internal class PieceBuildingSlot : PieceSlot
 
             // assign piece cube to slot, and note that it is on the board
             pieceCube = cubeMadeScript;
-            GetVirtualBoard<PieceBuildingSlot>().otherObjsOnBoard.Add(cubeMade);
+            GetVirtualBoard().otherObjsOnBoard.Add(cubeMade);
         }
 
         // toggles indicator variable
@@ -55,7 +55,7 @@ internal class PieceBuildingSlot : PieceSlot
     // spawns cube and update visual rep. array when clicked
     private void OnMouseDown()
     {
-        VirtualBoard<PieceBuildingSlot> vboard = GetVirtualBoard<PieceBuildingSlot>();
+        VirtualBoard<PieceBuildingSlot> vboard = GetVirtualBoard();
         vboard.OnSquareClicked(boardRow, boardCol);
     }
 

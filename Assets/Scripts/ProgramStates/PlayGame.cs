@@ -7,8 +7,9 @@ internal sealed class PlayGame : Process<PlayGame>, IAssociatedState<Game, Objec
     /*** INSTANCE VARIABLES ***/
     [SerializeField] internal Canvas canvas;
 
-    [SerializeField] internal Text curPlayerText;
+    [SerializeField] internal Button moveButtonTemplate;
     [SerializeField] internal ScrollRect movesScrView;
+    [SerializeField] internal Text curPlayerText;
 
 
 

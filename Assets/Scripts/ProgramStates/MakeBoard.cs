@@ -20,6 +20,55 @@ internal sealed class MakeBoard : Process<MakeBoard>, IAssociatedState<GameCreat
 
 
 
+    /*** START ***/
+    // Add handlers to scroll view and remove piece button
+    private void Start()
+    {
+        BoardCreationHandler bh = BoardCreationHandler.GetHandler();
+        // on click, change button
+        removePieceButton.onClick.AddListener(
+            delegate
+            {
+                // sets piece selected at start to no piece
+                bh.PieceSelected = PieceInfo.noPiece;
+
+                // changes background of all buttons in the scrollview to white
+                selectPieceScrView.ForEach<Button>
+                    (
+                        (b) => b.GetComponent<Image>().color = Color.white
+                    );
+
+                // change colour of 'no piece' button 
+                selectPieceScrView.SetChosenItem(removePieceButton);
+            });
+
+        // highlights button clicked on scroll view while resetting all others
+        selectPieceScrView.WhenChosenChanges
+            ((scrView) => delegate
+            {
+                // selects all non-highlighted buttons background to white
+                scrView.ForEach<Button>(
+                    (b) => b.GetComponent<Image>().color = Color.white);
+
+                // including remove piece button
+                removePieceButton.GetComponent<Image>().color =
+                    Color.white;
+
+                // highlights chosen button
+                if (scrView.GetChosenItem<Button>(out Button chosen) &&
+                    chosen != null)
+                {
+                    chosen.GetComponent<Image>().color =
+                        BoardCreationHandler.selectedPieceColour;
+                }
+            }
+            );
+    }
+
+
+
+
+
     /*** INSTANCE METHODS ***/
     public Canvas GetCanvas() { return canvas; }
     public ProgramData.State GetAssociatedState()
@@ -52,21 +101,7 @@ internal sealed class MakeBoard : Process<MakeBoard>, IAssociatedState<GameCreat
         List<PieceInfo> pieces = gamedata.pieces;
 
         // clear old states and starts new board
-        BoardInfo boardBeingMade = bh.StartNewBoard(numRows, numCols, gapSize);
-
-
-        // specifies and tiles a board 
-        VirtualBoard<PieceSpawningSlot> virBoard = new VirtualBoard<PieceSpawningSlot>
-            (
-                boardBeingMade,
-                pieces,
-                pceRes,
-                Prefabs.GetPrefabs().pieceSpawningSlot,
-                (brd, r, c) => bh.TogglePiece(r, c)
-            );
-
-        bh.VirtualBoardUsed = virBoard;
-        virBoard.SpawnBoard(SpatialConfigs.commonBoardOrigin);
+        bh.StartNewBoard(numRows, numCols, gapSize);
     }
 
 
@@ -95,76 +130,10 @@ internal sealed class MakeBoard : Process<MakeBoard>, IAssociatedState<GameCreat
     /// <param name="bh">Associated BoardCreationHandler</param>
     private void SetupUIs(BoardCreationHandler bh)
     {
-        GameCreationHandler gameHandler = GameCreationHandler.GetHandler();
-
-        // on click, change button
-        removePieceButton.onClick.AddListener(
-            delegate
-            {
-                // sets piece selected at start to no piece
-                bh.PieceSelected = PieceInfo.noPiece;
-
-                // changes background of all buttons in the scrollview to white
-                selectPieceScrView.ForEach<Button>
-                    (
-                        (b) => b.GetComponent<Image>().color = Color.white
-                    );
-
-                // change colour of 'no piece' button 
-                selectPieceScrView.SetChosenItem(removePieceButton);
-            });
-
-        // highlights button clicked on scroll view while resetting all others
-        selectPieceScrView.WhenChosenChanges
-            ((scrView) => delegate
-                {
-                    // selects all non-highlighted buttons background to white
-                    scrView.ForEach<Button>(
-                        (b) => b.GetComponent<Image>().color = Color.white);
-
-                  // including remove piece button
-                  removePieceButton.GetComponent<Image>().color =
-                      Color.white;
-
-                  // highlights chosen button
-                   if (scrView.GetChosenItem<Button>(out Button chosen) &&
-                       chosen != null)
-                   {
-                       chosen.GetComponent<Image>().color =
-                           BoardCreationHandler.selectedPieceColour;
-                   }
-               }
+        selectPieceScrView.RepopulatePieceButtons
+            (
+                pieceButtonTemplate,
+                (btn, index) => bh.PieceSelected = index // notifies board handler
             );
-
-
-        // clears all old visible button on scroll view
-        selectPieceScrView.Clear(pieceButtonTemplate);
-
-        // populates the scroll view with buttons labeled with piece names
-        for (byte index = 0; index < gameHandler.pieces.Count; index++)
-        {
-            // index of the associated piece 
-            //  index should not be used directly in delegate, as it *will* change
-            //  after this iteration of the loop ends
-            // index and indexAssocPiece are kind of like up'value's in Lua
-            byte indexAssocPiece = index;
-            PieceInfo pce = gameHandler.pieces[index];
-
-            // creaets a button tagged with the piece name and attach it to scrollView
-            Button pceButton =
-                Utility.CreateButton(pieceButtonTemplate, selectPieceScrView.content,
-                pce.pieceName,
-                (btn) => delegate
-                {
-                    selectPieceScrView.SetChosenItem(btn);
-
-                    // TODO TEMP DEBUG
-                    // index of piece selected
-                    Debug.Log("INDEX OF PIECE SELECTED: " + indexAssocPiece);
-
-                    // notifies board creation handler
-                    bh.PieceSelected = indexAssocPiece;
-                });
-        }
     }
 }

@@ -25,27 +25,5 @@ public class Prefabs : MonoBehaviour
 
 
 
-    /*** INSTANCE METHODS ***/
-    /// <summary>
-    /// Return the piece building/spawning slot specified in the type param.
-    /// Usage is not ideal, but useful
-    /// </summary>
-    /// <returns>The slot.</returns>
-    /// <typeparam name="Slot">Which type of slot to return</typeparam>
-    internal Slot GetSlot<Slot>() where Slot : PieceSlot
-    { 
-        if (typeof(Slot) == typeof(PieceSpawningSlot)) 
-        {
-            return pieceSpawningSlot as Slot;
-        }
-        else if (typeof(Slot) == typeof(PieceBuildingSlot)) 
-        {
-            return pieceBuildingSlot as Slot;
-        }
-        else //guard against other cases 
-        {
-            Debug.Log("Attempted to get a non-building, non-spawning slot.");
-            return null;
-        }
-    }
+
 }

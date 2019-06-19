@@ -29,6 +29,25 @@ internal sealed class ChooseGame : Process<ChooseGame>, IAssociatedState<UnityEn
 
 
 
+    /*** START ***/
+    // Add handlers to UI elements
+    private void Start()
+    {
+        // makes button do what it says it will -- it really will!
+        deleteAllGamesButton.onClick.AddListener
+            (
+                delegate
+                {
+                    Utility.DeleteAllSavedGames();
+                    chooseGameScrView.Clear(gameButtonTemplate);
+                }
+            );
+    }
+
+
+
+
+
     /*** INSTANCE METHODS ***/
     // Intro -> Choose Game
     public void OnEnterState(IAssociatedStateLeave<UnityEngine.Object> prevState, 
@@ -64,8 +83,8 @@ internal sealed class ChooseGame : Process<ChooseGame>, IAssociatedState<UnityEn
         foreach (string path in paths) 
         {
             // retrieves name of game
-            int indexNameEnd = path.IndexOf(".gam", StringComparison.Ordinal);
-            int indexNameStart = path.LastIndexOf("/", StringComparison.Ordinal) + 1;
+            int indexNameEnd = path.IndexOf(".gam", StringComparison.InvariantCulture);
+            int indexNameStart = path.LastIndexOf("/", StringComparison.InvariantCulture) + 1;
             int lengthOfName = indexNameEnd - indexNameStart;
             string gameName = path.Substring(indexNameStart, lengthOfName);
 
@@ -96,6 +115,7 @@ internal sealed class ChooseGame : Process<ChooseGame>, IAssociatedState<UnityEn
                         gameToPass = new Game(gameInfo);
                     }
                 );
-        }
+        } // finishes populating scroll view
+
     }
 }

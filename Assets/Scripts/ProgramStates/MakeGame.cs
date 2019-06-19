@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 // type alias, (# of players, # of rows, # of cols, piece resolution, relative gap size)
@@ -9,6 +10,7 @@ using System;
 // Items displayed on the MakeGame canvas 
 internal sealed class MakeGame : Process<MakeGame>, IAssociatedStateEnter<DimensionsData>,
     IAssociatedStateEnter<BoardInfo>, IAssociatedStateEnter<PieceInfo>,
+    IAssociatedStateEnter<RuleInfo>, IAssociatedStateEnter<WinCondInfo>,
     IAssociatedStateLeave<GameCreationHandler>, IAssociatedStateLeave<GameInfo>
 {
     /*** INSTANCE VARIABLES ***/
@@ -17,7 +19,7 @@ internal sealed class MakeGame : Process<MakeGame>, IAssociatedStateEnter<Dimens
     [SerializeField] internal Button makePieceButton;
     [SerializeField] internal Button makeBoardButton;
     [SerializeField] internal Button makeRuleButton;
-    [SerializeField] internal Button setWinCondButton;
+    [SerializeField] internal Button makeWinCondButton;
     [SerializeField] internal Button doneButton;
     [SerializeField] internal InputField nameInput;
 
@@ -56,6 +58,8 @@ internal sealed class MakeGame : Process<MakeGame>, IAssociatedStateEnter<Dimens
             throw new Exception("Unexpected previous state - mismatch with arguments passed");
         }
 
+        SetupUIs();
+
         // uses data to create new game board and list of pieces
         GameCreationHandler gameHandler = GameCreationHandler.GetHandler();
         gameHandler.StartNewGame(data);
@@ -63,6 +67,7 @@ internal sealed class MakeGame : Process<MakeGame>, IAssociatedStateEnter<Dimens
     }
 
 
+    // Make Piece -> Make Game
     // entered after end of piece creation
     public void OnEnterState(IAssociatedStateLeave<PieceInfo> previousState, PieceInfo pieceMade)
     {
@@ -76,6 +81,42 @@ internal sealed class MakeGame : Process<MakeGame>, IAssociatedStateEnter<Dimens
         // adds piece to list of pieces
         gameHandler.pieces.Add(pieceMade);
     }
+
+
+
+    // Make Rule -> Make Game
+    public void OnEnterState(IAssociatedStateLeave<RuleInfo> previousState, RuleInfo ruleMade)
+    {
+        GameCreationHandler gameHandler = GameCreationHandler.GetHandler();
+
+
+        if (!gameHandler.rules.ContainsKey(ruleMade.usableOn)) // guard against no key 
+        {
+            gameHandler.rules.Add(ruleMade.usableOn, new Dictionary<byte, List<RuleInfo>>());
+        }
+        Dictionary<byte, List<RuleInfo>> theirMoves = gameHandler.rules[ruleMade.usableOn];
+
+
+        if (!theirMoves.ContainsKey(ruleMade.triggerPiece)) 
+        {
+            theirMoves.Add(ruleMade.triggerPiece, new List<RuleInfo>());
+        }
+        List<RuleInfo> triggeredMoves = theirMoves[ruleMade.triggerPiece];
+
+
+        triggeredMoves.Add(ruleMade);
+    }
+
+
+
+    public void OnEnterState(IAssociatedStateLeave<WinCondInfo> previousState, 
+                             WinCondInfo winCondMade)
+    {
+        // add win condition
+        GameCreationHandler gameHandler = GameCreationHandler.GetHandler();
+        gameHandler.winConditions.Add(winCondMade);
+    }
+
 
 
     public GameCreationHandler OnLeaveState(IAssociatedStateEnter<GameCreationHandler> nextState)
@@ -96,4 +137,18 @@ internal sealed class MakeGame : Process<MakeGame>, IAssociatedStateEnter<Dimens
 
         return gameMade;
     }
+
+
+
+    // called upon entered from ChooseDim canvas, as of the first version
+    private void SetupUIs() 
+    {
+        // clears name input field
+        nameInput.text = "";
+    }
+
+
+
+
+
 }

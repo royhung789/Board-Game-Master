@@ -56,13 +56,37 @@ public class BoardCreationHandler : ProcessHandler<BoardCreationHandler>
 
 
 
-    // clears all stored information and prepares to make new board
+    // clears all stored information and prepares to edit or make new board
     //   returns a reference to the board being made
-    internal BoardInfo StartNewBoard(byte rows, byte cols, float gapSize) 
+    internal void StartNewBoard(byte rows, byte cols, float gapSize) 
     {
+        GameCreationHandler gameHandler = GameCreationHandler.GetHandler();
         pieceSelected = PieceInfo.noPiece;
-        boardBeingMade = BoardInfo.DefaultBoard(rows, cols, BoardSquareSize,  gapSize, defaultBoardColour);
-        return boardBeingMade;
+        if (gameHandler.boardAtStart == null)
+        {
+            boardBeingMade =
+                    BoardInfo.DefaultBoard(rows, cols, BoardSquareSize,
+                                           gapSize, defaultBoardColour);
+        }
+        else 
+        {
+            boardBeingMade = gameHandler.boardAtStart;
+        }
+
+
+        // specifies and tiles a board 
+        VirtualBoard<PieceSpawningSlot> virBoard = new VirtualBoard<PieceSpawningSlot>
+            (
+                boardBeingMade.BoardStateRepresentation,
+                boardBeingMade.BoardShapeRepresentation,
+                gameHandler.pieceResolution,
+                BoardSquareSize, 
+                gameHandler.GapSize,
+                (brd, r, c) => TogglePiece(r, c)
+            );
+
+        VirtualBoardUsed = virBoard;
+        virBoard.SpawnBoard(SpatialConfigs.commonBoardOrigin);
     }
 
 
