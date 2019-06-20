@@ -9,10 +9,13 @@ internal sealed class MakePiece : Process<MakePiece>, IAssociatedState<GameCreat
 
     [SerializeField] internal Button doneButton;
     [SerializeField] internal InputField nameInput;
+    [SerializeField] internal Slider zoomSlider;
 
 
-
-
+    void Start()
+    {
+        zoomSlider.onValueChanged.AddListener(CameraHandler.GetHandler().MoveCamera);
+    }
 
     /*** INSTANCE METHODS ***/
     public Canvas GetCanvas() { return canvas; }
